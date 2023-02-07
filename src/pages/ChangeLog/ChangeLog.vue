@@ -249,9 +249,9 @@ export default defineComponent({
         "https://raw.githubusercontent.com/OpenBanking-Brasil/openapi/main/swagger-apis/accounts/2.0.0.yml",
       templateDescription: {
         templateAdded: 'Adicionado - "${field}"',
-        templateEdited: 'Alterado - "${field}"',
+        templateEdited: '${field}',
         templateRemoved: 'Removido - "${field}"',
-        templateRequired: "Alterado mandatoriedade",
+        templateRequired: "Mandatoriedade",
       },
     };
 
