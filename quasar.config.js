@@ -10,9 +10,12 @@
 
 
 const { configure } = require('quasar/wrappers');
+const DotEnv = require('dotenv')
 
 
 module.exports = configure(function (/* ctx */) {
+  const parsedEnv = DotEnv.config().parsed
+  console.log(parsedEnv);
   return {
     
 
@@ -62,7 +65,7 @@ module.exports = configure(function (/* ctx */) {
 
       publicPath: process.env.NODE_ENV == "development" ? '' : 'https://sensedia.github.io/gerador-changelog-ui/',
       // analyze: true,
-      // env: {},
+       env: parsedEnv,
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,

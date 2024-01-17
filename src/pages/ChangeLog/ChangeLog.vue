@@ -282,9 +282,10 @@ export default defineComponent({
       this.endpointChangeLogList = [];
       this.showLoading();
       this.validations(changeLog);
+      console.log(process.env.API_URL)
       axios
         .post(
-          "http://localhost:5000/change-log/generate-change-log",
+          process.env.API_URL || "",
           changeLog
         )
         .then((response: any) => {
@@ -304,7 +305,7 @@ export default defineComponent({
 
           Notify.create({
             type: "negative",
-            message: error.response.data.message,
+            message: error,
           });
         })
         .finally((x) => {
