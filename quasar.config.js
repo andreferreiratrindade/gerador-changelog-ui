@@ -63,7 +63,7 @@ module.exports = configure(function (/* ctx */) {
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
       //publicPath: '.',
-      // publicPath: process.env.NODE_ENV == "development" ? '' : 'https://sensedia.github.io/gerador-changelog-ui/',
+       publicPath: process.env.NODE_ENV == "development" ? '' : parsedEnv.DOMAIN_NAME,
       // analyze: true,
        env: parsedEnv,
       // rawDefine: {}
