@@ -282,13 +282,14 @@ export default defineComponent({
       this.endpointChangeLogList = [];
       this.showLoading();
       this.validations(changeLog);
+      console.log(process.env.API_URL)
       axios
         .post(
-          "http://localhost:5000/change-log/generate-change-log",
+          process.env.API_URL || "",
           changeLog
         )
         .then((response: any) => {
-          this.changes = response.data.obj.changesLog;
+          this.changes = response.data.changesLog;
           let resultGroup = groupByEndPoint(this.changes);
           for (let key of resultGroup.keys()) {
             this.endpointChangeLogList.push({
@@ -297,14 +298,14 @@ export default defineComponent({
             });
           }
           //  this.endpointChangeLogList = groupByEndPoint(this.changes)
-          console.log(response.data.obj.changesLog.length);
+          console.log(this.changes);
         })
         .catch((error: any) => {
-          console.log(error.response);
+          console.log(error);
 
           Notify.create({
             type: "negative",
-            message: error.response.data.message,
+            message: error,
           });
         })
         .finally((x) => {
