@@ -289,7 +289,7 @@ export default defineComponent({
           changeLog
         )
         .then((response: any) => {
-          this.changes = response.data.obj.changesLog;
+          this.changes = response.data.changesLog;
           let resultGroup = groupByEndPoint(this.changes);
           for (let key of resultGroup.keys()) {
             this.endpointChangeLogList.push({
