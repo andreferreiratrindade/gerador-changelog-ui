@@ -298,10 +298,10 @@ export default defineComponent({
             });
           }
           //  this.endpointChangeLogList = groupByEndPoint(this.changes)
-          console.log(response.data.obj.changesLog.length);
+          console.log(this.changes);
         })
         .catch((error: any) => {
-          console.log(error.response);
+          console.log(error);
 
           Notify.create({
             type: "negative",
