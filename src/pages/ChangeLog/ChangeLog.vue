@@ -17,11 +17,11 @@
                   </template>
                   Sistema gerador de change log através de dois arquivos do tipo
                   *.yaml (openApi)
-                  <br/>
+                  <br />
 
                   Obrigatório - Informar versão anterior e atual dos arquivos
                   nos campos correspondentes
-                  <br/>
+                  <br />
 
                   Opcional - Informar template para compor escrita padrão de
                   texto para o change log gerado
@@ -100,14 +100,14 @@
         >
           <q-card>
             <q-card-section>
-              <div class="q-pa-md">
+              <div class="q-pa-xs">
                 <q-table
                   :rows="item.changes"
                   :columns="columns"
+                  ellipsis
                   row-key="name"
                   :visible-columns="visibleColumns"
                   :pagination="pagination"
-
                 >
                   <template v-slot:top="props">
                     <q-space />
@@ -116,27 +116,27 @@
                       <q-toggle
                         v-model="visibleColumns"
                         val="path"
-                        label="Path"
-                      />
-                      <q-toggle
-                        v-model="visibleColumns"
-                        val="field"
-                        label="Field"
+                        label="Campo"
                       />
                       <q-toggle
                         v-model="visibleColumns"
                         val="description"
-                        label="Description"
+                        label="Descrição"
+                      />
+                      <q-toggle
+                        v-model="visibleColumns"
+                        val="changeType"
+                        label="Tipo da alteração"
                       />
                       <q-toggle
                         v-model="visibleColumns"
                         val="oldValue"
-                        label="Old value"
+                        label="Antes"
                       />
                       <q-toggle
                         v-model="visibleColumns"
                         val="currentValue"
-                        label="Current value"
+                        label="Depois"
                       />
                     </div>
                     <q-select
@@ -165,6 +165,7 @@
                       class="q-ml-md"
                     />
                   </template>
+
                 </q-table>
               </div>
             </q-card-section>
@@ -187,40 +188,40 @@ import { defineComponent, PropType, computed, ref, toRef, Ref } from "vue";
 import { exportFile, useQuasar } from "quasar";
 import axios from "axios";
 const columns = [
-  { name: "path", label: "Path", field: "path", align: "left", sortable: true },
-  {
-    name: "field",
-    label: "Field",
-    field: "field",
-    align: "left",
-    sortable: true,
-  },
+  { name: "path", label: "Campo", field: "path", align: "left", sortable: true },
+
   {
     name: "description",
-    label: "Description",
+    label: "O que foi alterado?",
     field: "description",
     align: "left",
     sortable: true,
   },
   {
-    name: "oldValue",
-    label: "Old value",
-    field: "oldValue",
+    name: "changeType",
+    label: "Tipo da alteração",
+    field: "changeType",
     align: "left",
     sortable: true,
   },
   {
+    name: "oldValue",
+    label: "Antes",
+    field: "oldValue",
+    align: "left",
+    sortable: true,
+    format: (val : string, _row : any) => `${val.length > 50 ? val.substring(0,50) + '...' : val}`,
+  },
+  {
     name: "currentValue",
-    label: "Current value",
+    label: "Depois",
     field: "currentValue",
     align: "left",
     sortable: true,
+    format: (val : string, _row : any) => `${val.length > 50 ? val.substring(0,50) + '...' : val}`,
+
   },
 ];
-
-const pagination =  {
-        rowsPerPage: 30 // current rows per page being displayed
-  }
 
 function groupByEndPoint(list: ChangeLogListModel[]) {
   const map = new Map();
@@ -249,7 +250,7 @@ export default defineComponent({
         "https://raw.githubusercontent.com/OpenBanking-Brasil/openapi/main/swagger-apis/accounts/2.0.0.yml",
       templateDescription: {
         templateAdded: 'Adicionado - "${field}"',
-        templateEdited: '${field}',
+        templateEdited: 'Alterado - "${field}"',
         templateRemoved: 'Removido - "${field}"',
         templateRequired: "Mandatoriedade",
       },
@@ -282,12 +283,9 @@ export default defineComponent({
       this.endpointChangeLogList = [];
       this.showLoading();
       this.validations(changeLog);
-      console.log(process.env.API_URL)
+      console.log(process.env.API_URL);
       axios
-        .post(
-          process.env.API_URL || "",
-          changeLog
-        )
+        .post(process.env.API_URL || "", changeLog)
         .then((response: any) => {
           this.changes = response.data.changesLog;
           let resultGroup = groupByEndPoint(this.changes);
@@ -308,11 +306,11 @@ export default defineComponent({
             message: error,
           });
         })
-        .finally((x) => {
+        .finally(() => {
           this.hideLoading();
         });
     },
-    wrapCsvValue(val, formatFn) {
+    wrapCsvValue(val: string) {
       val = val.split('"').join('""');
       return `"${val}"`;
     },
@@ -322,7 +320,7 @@ export default defineComponent({
       let contentArray: string[] = [];
       let content = "";
       contentArray.push(
-        `endpoint;path;field;description;oldValue;currentValue`
+        `endpoint;path;field;description;changeType;oldValue;currentValue`
       );
       this.changes.forEach((change) => {
         contentArray.push(
@@ -330,7 +328,8 @@ export default defineComponent({
             change.path
           )};${this.wrapCsvValue(change.field)};${this.wrapCsvValue(
             change.description
-          )};${this.wrapCsvValue(change.oldValue)};${this.wrapCsvValue(
+          )};${this.wrapCsvValue(change.changeType)};${this.wrapCsvValue(
+            change.oldValue)};${this.wrapCsvValue(
             change.currentValue
           )}`
         );
@@ -342,7 +341,10 @@ export default defineComponent({
   setup() {
     return {
       columns,
-      visibleColumns: ref(["path", "description", "field"]),
+      visibleColumns: ref(["path", "description", "changeType", "oldValue", "currentValue"]),
+      pagination: {
+        rowsPerPage: 0, // current rows per page being displayed
+      },
     };
   },
 });

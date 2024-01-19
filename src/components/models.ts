@@ -34,4 +34,5 @@ export interface ChangeLogListModel{
   field: string;
   oldValue: string;
   path: string;
+  changeType: string;
 }
