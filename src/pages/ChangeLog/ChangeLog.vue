@@ -81,14 +81,27 @@
 
     <!-- changeLog List view-->
     <div class="q-pa-md col-12" v-if="endpointChangeLogList.length > 0">
-      <q-btn
-        color="dark"
-        icon-right="archive"
-        label="Download CSV"
-        no-caps
-        @click="exportTable"
-      />
-      <q-list bordered class="bordered">
+      <div class="col-12">
+        <q-btn
+          color="green"
+          icon-right="archive"
+          label="Download CSV"
+          no-caps
+          @click="exportTable"
+          class="col-2"
+        />
+
+        <q-btn
+          color="orange"
+          icon-right="share"
+          label="Compartilhar"
+          no-caps
+          @click="showUrlShare"
+          class="col-2"
+          style="margin-left: 20px"
+        />
+      </div>
+      <q-list bordered class="bordered col-12">
         <q-expansion-item
           expand-separator
           group="somegroup"
@@ -165,7 +178,6 @@
                       class="q-ml-md"
                     />
                   </template>
-
                 </q-table>
               </div>
             </q-card-section>
@@ -173,11 +185,31 @@
         </q-expansion-item>
       </q-list>
     </div>
+    <q-dialog v-model="sharerChangeLogDiolag">
+      <q-card>
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">Compartilhar</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <q-btn
+            :icon="'content_paste'"
+            color="primary"
+            @click="copyUrlToBoard"
+          />
+          <div class="col-12">
+          {{ urlToShare }}
+        </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import { Loading, Notify } from "quasar";
+import { Loading, Notify, copyToClipboard } from "quasar";
 import {
   ChangeLogPostModel,
   ChangeLogListModel,
@@ -187,8 +219,15 @@ import ChangeLogListComponent from "components/ChangeLogListComponent.vue";
 import { defineComponent, PropType, computed, ref, toRef, Ref } from "vue";
 import { exportFile, useQuasar } from "quasar";
 import axios from "axios";
+import { useRoute } from "vue-router";
 const columns = [
-  { name: "path", label: "Campo", field: "path", align: "left", sortable: true },
+  {
+    name: "path",
+    label: "Campo",
+    field: "path",
+    align: "left",
+    sortable: true,
+  },
 
   {
     name: "description",
@@ -210,7 +249,8 @@ const columns = [
     field: "oldValue",
     align: "left",
     sortable: true,
-    format: (val : string, _row : any) => `${val.length > 50 ? val.substring(0,50) + '...' : val}`,
+    format: (val: string, _row: any) =>
+      `${val.length > 50 ? val.substring(0, 50) + "..." : val}`,
   },
   {
     name: "currentValue",
@@ -218,10 +258,30 @@ const columns = [
     field: "currentValue",
     align: "left",
     sortable: true,
-    format: (val : string, _row : any) => `${val.length > 50 ? val.substring(0,50) + '...' : val}`,
-
+    format: (val: string, _row: any) =>
+      `${val.length > 50 ? val.substring(0, 50) + "..." : val}`,
   },
 ];
+
+function getParametersFromUrls(): any {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  let parameters: any = {
+    urlOld:
+      "https://raw.githubusercontent.com/OpenBanking-Brasil/openapi/main/swagger-apis/accounts/1.0.3.yml",
+    urlCurrent:
+      "https://raw.githubusercontent.com/OpenBanking-Brasil/openapi/main/swagger-apis/accounts/2.0.0.yml",
+    hasParameter: false,
+  };
+
+  if (urlParams.has("urlOld") && urlParams.has("urlCurrent")) {
+    parameters.urlCurrent = urlParams.get("urlCurrent");
+    parameters.urlOld = urlParams.get("urlOld");
+    parameters.hasParameter = true;
+  }
+
+  return parameters;
+}
 
 function groupByEndPoint(list: ChangeLogListModel[]) {
   const map = new Map();
@@ -243,11 +303,12 @@ export default defineComponent({
   data() {
     let endpointChangeLogList: EndpointChangeLogListModel[] = [];
     let changeLogList: ChangeLogListModel[] = [];
+    debugger;
+    let parameters = getParametersFromUrls();
+
     const changeLogPostModel: ChangeLogPostModel = {
-      urlOld:
-        "https://raw.githubusercontent.com/OpenBanking-Brasil/openapi/main/swagger-apis/accounts/1.0.3.yml",
-      urlCurrent:
-        "https://raw.githubusercontent.com/OpenBanking-Brasil/openapi/main/swagger-apis/accounts/2.0.0.yml",
+      urlOld: parameters.urlOld,
+      urlCurrent: parameters.urlCurrent,
       templateDescription: {
         templateAdded: 'Adicionado - "${field}"',
         templateEdited: 'Alterado - "${field}"',
@@ -255,6 +316,10 @@ export default defineComponent({
         templateRequired: "Mandatoriedade",
       },
     };
+
+    if (parameters.hasParameter) {
+      this.gerar(changeLogPostModel);
+    }
 
     return {
       changeLogPostModel: changeLogPostModel,
@@ -283,7 +348,7 @@ export default defineComponent({
       this.endpointChangeLogList = [];
       this.showLoading();
       this.validations(changeLog);
-      console.log(process.env.API_URL);
+
       axios
         .post(process.env.API_URL || "", changeLog)
         .then((response: any) => {
@@ -295,8 +360,7 @@ export default defineComponent({
               changes: resultGroup.get(key),
             });
           }
-          //  this.endpointChangeLogList = groupByEndPoint(this.changes)
-          console.log(this.changes);
+          this.createUrlShare();
         })
         .catch((error: any) => {
           console.log(error);
@@ -310,11 +374,28 @@ export default defineComponent({
           this.hideLoading();
         });
     },
+    async copyUrlToBoard() {
+      await copyToClipboard(this.urlToShare);
+    },
     wrapCsvValue(val: string) {
       val = val.split('"').join('""');
       return `"${val}"`;
     },
+    showUrlShare() {
+      this.sharerChangeLogDiolag = true;
+    },
+    createUrlShare() {
+      const url = new URL(window.location.href);
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.delete("urlOld");
+      urlParams.delete("urlCurrent");
 
+      urlParams.append("urlOld", this.changeLogPostModel.urlOld);
+      urlParams.append("urlCurrent", this.changeLogPostModel.urlCurrent);
+
+      url.search = urlParams.toString();
+      this.urlToShare = url.href;
+    },
     exportTable() {
       // naive encoding to csv format
       let contentArray: string[] = [];
@@ -329,9 +410,8 @@ export default defineComponent({
           )};${this.wrapCsvValue(change.field)};${this.wrapCsvValue(
             change.description
           )};${this.wrapCsvValue(change.changeType)};${this.wrapCsvValue(
-            change.oldValue)};${this.wrapCsvValue(
-            change.currentValue
-          )}`
+            change.oldValue
+          )};${this.wrapCsvValue(change.currentValue)}`
         );
       });
       content = contentArray.join("\n");
@@ -341,7 +421,15 @@ export default defineComponent({
   setup() {
     return {
       columns,
-      visibleColumns: ref(["path", "description", "changeType", "oldValue", "currentValue"]),
+      sharerChangeLogDiolag: ref(false),
+      urlToShare: ref(""),
+      visibleColumns: ref([
+        "path",
+        "description",
+        "changeType",
+        "oldValue",
+        "currentValue",
+      ]),
       pagination: {
         rowsPerPage: 0, // current rows per page being displayed
       },
