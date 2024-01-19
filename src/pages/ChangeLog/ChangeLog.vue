@@ -250,7 +250,7 @@ const columns = [
     align: "left",
     sortable: true,
     format: (val: string, _row: any) =>
-      `${val.length > 50 ? val.substring(0, 50) + "..." : val}`,
+      `${val.length > 60 ? val.substring(0, 60) + "..." : val}`,
   },
   {
     name: "currentValue",
@@ -259,7 +259,7 @@ const columns = [
     align: "left",
     sortable: true,
     format: (val: string, _row: any) =>
-      `${val.length > 50 ? val.substring(0, 50) + "..." : val}`,
+      `${val.length > 60 ? val.substring(0, 60) + "..." : val}`,
   },
 ];
 
