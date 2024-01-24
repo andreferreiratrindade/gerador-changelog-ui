@@ -83,7 +83,7 @@
     <div class="q-pa-md col-12" v-if="endpointChangeLogList.length > 0">
       <div class="col-12">
         <q-btn
-          color="green"
+          color="blue-grey-6"
           icon-right="archive"
           label="Download CSV"
           no-caps
@@ -92,11 +92,21 @@
         />
 
         <q-btn
-          color="orange"
+          color="blue-grey-7"
           icon-right="share"
           label="Compartilhar"
           no-caps
           @click="showUrlShare"
+          class="col-2"
+          style="margin-left: 20px"
+        />
+
+        <q-btn
+          color="blue-grey-8"
+          icon-right="diff"
+          label="Diferenças"
+          no-caps
+          @click="showDiffFile"
           class="col-2"
           style="margin-left: 20px"
         />
@@ -205,17 +215,33 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+       <q-dialog v-model="diffFileDiolag" full-width   full-height>
+      <q-card>
+        <q-card-section class="row items-center q-pb-none">
+         <code-diff
+      :old-string="fileOld"
+      :new-string="fileCurrent"
+      file-name="test.txt"
+      output-format="side-by-side"/>
+        </q-card-section>
+
+        <q-card-section>
+         
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script lang="ts">
 import { Loading, Notify, copyToClipboard } from "quasar";
+import {CodeDiff} from 'v-code-diff'
+
 import {
   ChangeLogPostModel,
   ChangeLogListModel,
   EndpointChangeLogListModel,
-  InfoApiChangeLogModel,
-  InfoApisComparatorModel
+  InfoApiChangeLogModel
 } from "components/models";
 import ChangeLogListComponent from "components/ChangeLogListComponent.vue";
 import { defineComponent,  ref } from "vue";
@@ -300,7 +326,7 @@ function groupByEndPoint(list: ChangeLogListModel[]) {
 
 export default defineComponent({
   name: "ChangeLogPage",
-  components: { ChangeLogListComponent },
+  components: { ChangeLogListComponent, CodeDiff},
   data() {
     let endpointChangeLogList: EndpointChangeLogListModel[] = [];
     let infoApiChanges: InfoApiChangeLogModel = { changesLog : [], 
@@ -388,6 +414,19 @@ export default defineComponent({
     showUrlShare() {
       this.sharerChangeLogDiolag = true;
     },
+    async showDiffFile(){
+      const taskFileOld = axios
+        .get(this.changeLogPostModel.urlOld);
+      
+      const taskFileCurrent = await axios
+        .get(this.changeLogPostModel.urlCurrent);
+
+      const [resultFileOld, resultFileCurrent ] = await Promise.all([taskFileOld, taskFileCurrent ]);
+
+      this.fileOld = resultFileOld.data;
+      this.fileCurrent = resultFileCurrent.data;
+      this.diffFileDiolag = true;
+    },
     createUrlShare() {
       const url = new URL(window.location.href);
       const urlParams = new URLSearchParams(window.location.search);
@@ -426,7 +465,10 @@ export default defineComponent({
     return {
       columns,
       sharerChangeLogDiolag: ref(false),
+      diffFileDiolag: ref(false),
       urlToShare: ref(""),
+      fileCurrent: ref(""),
+      fileOld:ref(""),
       visibleColumns: ref([
         "path",
         "description",
