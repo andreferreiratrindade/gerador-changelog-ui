@@ -38,8 +38,9 @@ export interface ChangeLogListModel{
 }
 
 export interface InfoApiChangeLogModel{
-  oldApi : InfoApisComparatorModel
-  currentApi :  InfoApisComparatorModel
+  oldApi : InfoApisComparatorModel;
+  currentApi :  InfoApisComparatorModel;
+  changesLog : ChangeLogListModel[];
 }
 
 export interface InfoApisComparatorModel{

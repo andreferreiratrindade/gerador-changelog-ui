@@ -303,7 +303,9 @@ export default defineComponent({
   components: { ChangeLogListComponent },
   data() {
     let endpointChangeLogList: EndpointChangeLogListModel[] = [];
-    let infoApiChanges: InfoApiChangeLogModel = {};
+    let infoApiChanges: InfoApiChangeLogModel = { changesLog : [], 
+        currentApi : {apiName : "", url : "", version : ""},
+        oldApi : {apiName : "", url : "", version : ""},  };
     let parameters = getParametersFromUrls();
 
     const changeLogPostModel: ChangeLogPostModel = {
@@ -352,11 +354,9 @@ export default defineComponent({
       axios
         .post(process.env.API_URL || "", changeLog)
         .then((response: any) => {
-          let changes = response.data.changesLog;
-          this.infoApiChanges.currentApi = response.data.currentApi;
-          this.infoApiChanges.oldApi = response.data.oldApi;
+          this.infoApiChanges = response.data;
 
-          let resultGroup = groupByEndPoint(changes);
+          let resultGroup = groupByEndPoint(this.infoApiChanges.changesLog);
 
           for (let key of resultGroup.keys()) {
             this.endpointChangeLogList.push({
@@ -419,7 +419,7 @@ export default defineComponent({
         );
       });
       content = contentArray.join("\n");
-      const status = exportFile(`ChangeLog ${this.infoApiChanges.oldApi.version}__${this.infoApiChanges.currentApi.version}.csv`, content, "text/csv");
+      const status = exportFile(`ChangeLog ${this.infoApiChanges.currentApi.apiName}__${this.infoApiChanges.oldApi.version}__${this.infoApiChanges.currentApi.version}.csv`, content, "text/csv");
     },
   },
   setup() {
