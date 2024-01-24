@@ -36,3 +36,15 @@ export interface ChangeLogListModel{
   path: string;
   changeType: string;
 }
+
+export interface InfoApiChangeLogModel{
+  oldApi : InfoApisComparatorModel;
+  currentApi :  InfoApisComparatorModel;
+  changesLog : ChangeLogListModel[];
+}
+
+export interface InfoApisComparatorModel{
+   version : string;
+   url : string;
+   apiName : string;
+}

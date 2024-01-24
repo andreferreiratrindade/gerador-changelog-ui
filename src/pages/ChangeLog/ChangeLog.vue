@@ -214,12 +214,13 @@ import {
   ChangeLogPostModel,
   ChangeLogListModel,
   EndpointChangeLogListModel,
+  InfoApiChangeLogModel,
+  InfoApisComparatorModel
 } from "components/models";
 import ChangeLogListComponent from "components/ChangeLogListComponent.vue";
-import { defineComponent, PropType, computed, ref, toRef, Ref } from "vue";
-import { exportFile, useQuasar } from "quasar";
+import { defineComponent,  ref } from "vue";
+import { exportFile } from "quasar";
 import axios from "axios";
-import { useRoute } from "vue-router";
 const columns = [
   {
     name: "path",
@@ -302,8 +303,9 @@ export default defineComponent({
   components: { ChangeLogListComponent },
   data() {
     let endpointChangeLogList: EndpointChangeLogListModel[] = [];
-    let changeLogList: ChangeLogListModel[] = [];
-    debugger;
+    let infoApiChanges: InfoApiChangeLogModel = { changesLog : [], 
+        currentApi : {apiName : "", url : "", version : ""},
+        oldApi : {apiName : "", url : "", version : ""},  };
     let parameters = getParametersFromUrls();
 
     const changeLogPostModel: ChangeLogPostModel = {
@@ -323,7 +325,7 @@ export default defineComponent({
 
     return {
       changeLogPostModel: changeLogPostModel,
-      changes: changeLogList,
+      infoApiChanges: infoApiChanges,
       endpointChangeLogList: endpointChangeLogList,
     };
   },
@@ -352,8 +354,10 @@ export default defineComponent({
       axios
         .post(process.env.API_URL || "", changeLog)
         .then((response: any) => {
-          this.changes = response.data.changesLog;
-          let resultGroup = groupByEndPoint(this.changes);
+          this.infoApiChanges = response.data;
+
+          let resultGroup = groupByEndPoint(this.infoApiChanges.changesLog);
+
           for (let key of resultGroup.keys()) {
             this.endpointChangeLogList.push({
               endpoint: key,
@@ -403,7 +407,7 @@ export default defineComponent({
       contentArray.push(
         `endpoint;path;field;description;changeType;oldValue;currentValue`
       );
-      this.changes.forEach((change) => {
+      this.infoApiChanges.changesLog.forEach((change) => {
         contentArray.push(
           `${this.wrapCsvValue(change.endpoint)};${this.wrapCsvValue(
             change.path
@@ -415,7 +419,7 @@ export default defineComponent({
         );
       });
       content = contentArray.join("\n");
-      const status = exportFile("table-export.csv", content, "text/csv");
+      const status = exportFile(`ChangeLog ${this.infoApiChanges.currentApi.apiName}__${this.infoApiChanges.oldApi.version}__${this.infoApiChanges.currentApi.version}.csv`, content, "text/csv");
     },
   },
   setup() {
