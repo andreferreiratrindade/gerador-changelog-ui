@@ -92,7 +92,7 @@
         />
 
         <q-btn
-          color="blue-grey-7"
+          color="blue-grey-6"
           icon-right="share"
           label="Compartilhar"
           no-caps
@@ -102,8 +102,8 @@
         />
 
         <q-btn
-          color="blue-grey-8"
-          icon-right="diff"
+          color="blue-grey-6"
+          icon-right="difference"
           label="Diferenças"
           no-caps
           @click="showDiffFile"
@@ -415,6 +415,8 @@ export default defineComponent({
       this.sharerChangeLogDiolag = true;
     },
     async showDiffFile(){
+      this.showLoading();
+
       const taskFileOld = axios
         .get(this.changeLogPostModel.urlOld);
       
@@ -425,6 +427,8 @@ export default defineComponent({
 
       this.fileOld = resultFileOld.data;
       this.fileCurrent = resultFileCurrent.data;
+
+      this.hideLoading();
       this.diffFileDiolag = true;
     },
     createUrlShare() {
