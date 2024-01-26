@@ -15,7 +15,6 @@ const DotEnv = require('dotenv')
 
 module.exports = configure(function (/* ctx */) {
   const parsedEnv = DotEnv.config().parsed
-  console.log(parsedEnv);
   return {
     
 

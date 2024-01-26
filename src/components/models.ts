@@ -11,6 +11,7 @@ export interface ChangeLogPostModel{
     urlOld : string;
     urlCurrent : string;
     templateDescription: ChangeLogPostTemplateDescriptionModel;
+    typeModel: number;
 }
 
 export interface ChangeLogPostTemplateDescriptionModel{
@@ -35,13 +36,21 @@ export interface ChangeLogListModel{
   oldValue: string;
   path: string;
   changeType: string;
+  changeTypeEnum : number // 1 - Adicionado /  2 - Alterado // 3 - Removido /
 }
 
 export interface InfoApiChangeLogModel{
   oldApi : InfoApisComparatorModel;
   currentApi :  InfoApisComparatorModel;
-  changesLog : ChangeLogListModel[];
+  changeLogPerEndPoint : ChangeLogPerEndPoint[];
 }
+ export interface ChangeLogPerEndPoint{
+  endpoint : string,
+  changeLogs : ChangeLogListModel[],
+  countAdded: number, 
+  countRemoved: number, 
+  countEdited: number
+ }
 
 export interface InfoApisComparatorModel{
    version : string;
